@@ -104,7 +104,10 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 		// Binding this server to the ip and host
 		
 		System.setProperty("java.security.policy", "C:\\Users\\TeresaUser\\JavaEEWorkspace\\RMIServer3\\rmi.policy");
-		System.out.println("Set the security policy: C:\\Users\\TeresaUser\\JavaEEWorkspace\\RMIServer3\\rmi.policy");
+		File parentDir = new File ("..");
+		System.out.println ("Parent  dir : " + parentDir.getCanonicalPath() + "\\rmi.policy");
+		//file.getParentFile().getName();
+		//System.out.println("Set the security policy: " + "..\\" + System.getProperty("user.dir") + "\\rmi.policy");
 		if(	System.getSecurityManager()==null)
 			System.setSecurityManager(new SecurityManager());
 		
