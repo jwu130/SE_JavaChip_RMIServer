@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implements RMI_BioAPI_AsteriskJava_Interface {
@@ -111,7 +113,17 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 		if(	System.getSecurityManager()==null)
 			System.setSecurityManager(new SecurityManager());
 		
-		Naming.bind("RMI_BioAPI_AsteriskJava", svr);
+		try 
+		{	
+			Registry reg = LocateRegistry.createRegistry(Integer.parseInt(args[0]));
+			reg.bind("RMI_BioAPI_AsteriskJava", svr);
+		}
+		catch (Exception e){
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			System.exit(0);
+		}
+		//Naming.bind("RMI_BioAPI_AsteriskJava", svr);
         
 		System.out.println("BioAPI AsteriskJava RMI server starts ... ");
 	}
