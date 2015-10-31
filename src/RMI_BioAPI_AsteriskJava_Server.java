@@ -19,55 +19,73 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 		super(port);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see RMI_BioAPI_AsteriskJava_Interface#RPC_FileRead(java.lang.String,
-	 * java.lang.String)
-	 */
 	@Override
 	public void RPC_FileRead(String Service_UID, String srcFileName, String socket_ip, int socket_port,
-			String remote_fileName) throws RemoteException {
-		// TODO Auto-generated method stub
+		String remote_fileName) throws RemoteException {
 		Socket soc;
 		PrintWriter pw = null;
-		// BufferedReader br = null;
-		
-		File fileName = new File(srcFileName);
-		BufferedReader brf = null;
+
+		File directory = new File("rmifiles");
+		File serverFile = null;
+
+		// Search through subdirectory to find file specified
 		try {
-			brf = new BufferedReader(new InputStreamReader(new FileInputStream(fileName.getAbsolutePath())));
+			
+			// Look for subfolder called 'rmifiles'
+			if (!directory.isDirectory())
+				throw new Exception("The directory rmifiles does not exist");
+			File[] fList = directory.listFiles();
+			
+			// Search through folder for file specified
+			for (File file : fList){
+				System.out.println(file.getName() + " " + srcFileName);
+				if (file.getName().equals(srcFileName))
+					serverFile = file;
+			}
+			
+			if(serverFile==null)
+				throw new Exception("The file " + srcFileName + " is not available in rmifiles folder");
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return;
+		}
+		
+		BufferedReader brf = null;
+
+		try {
+			brf = new BufferedReader(new InputStreamReader(new FileInputStream(serverFile.getAbsolutePath())));
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
 		}
 
 		try {
 			if (brf == null)
-				throw new RuntimeException("Cannot read from closed file " + fileName.getAbsolutePath() + ".");
+				throw new RuntimeException("Cannot read from closed file " + serverFile.getAbsolutePath() + ".");
 
 			try {
-				// System.out.println("Server address connected to is "+addr+"
-				// and port is "+port);
+				
+				// Create socket to connect to client
 				soc = new Socket(socket_ip, socket_port);
 				pw = new PrintWriter(soc.getOutputStream(), true);
 
-				pw.println("StartXfer"); // Signaling message to start xfer to
-											// the remote socket server
-				pw.println(remote_fileName); // Signaling message about remote
-												// file name
+				 // Signaling message to start xfer to the remote socket server
+				pw.println("StartXfer");
+				
+				// Signaling message about remote file name
+				pw.println("Remote file name is: " + remote_fileName); 
 
 				String line = brf.readLine();
 				int counter = 0;
 
-				while (line != null&&counter<25) {
+				while (line != null && counter < 25) {
 					System.out.println(line);
 					pw.println(line);
 					counter++;
 					line = brf.readLine();
 				}
 
-				pw.println("Done"); // Signaling message to terminate the remote
-									// socket server
+				// Done is the signaling message to terminate socket listener
+				pw.println("Done"); 
 
 				brf.close();
 				soc.close();
@@ -83,63 +101,36 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	} // method RPC_FileRead()
+	} // RPC_FileRead
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		// Detect operating system
 		
-		// TODO Auto-generated method stub
 		if (args.length != 2) {
-			System.out.println(
-					"Syntax - Two arguments expected rmi_registry_port, host_port");
+			System.out.println("Syntax - Two arguments expected rmi_registry_port, host_port");
 			System.exit(1);
 		}
 
-		// Create an instance of the server
+		// Create an instance of RMI_BioAPI_AsteriskJava_Server object
 		RMI_BioAPI_AsteriskJava_Server svr = new RMI_BioAPI_AsteriskJava_Server(Integer.parseInt(args[1]));
-		
-		System.out.println("RmiRegistry listens at port " + args[0]);
-		System.out.println("AsteriskJava BSP Server is ready to listen on " + args[1]);
-		System.out.println(InetAddress.getLocalHost());
-		
-		// Set the policy file for the server 
-		System.setProperty("java.security.policy", (
-				RMI_BioAPI_AsteriskJava_Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() + "//rmi.policy"));
-		
-//		File parentDir = new File ("..");
-//		System.out.println ("Parent  dir : " + parentDir.getCanonicalPath() + "\\rmi.policy");
-		//file.getParentFile().getName();
-		//System.out.println("Set the security policy: " + "..\\" + System.getProperty("user.dir") + "\\rmi.policy");
 
-//		ClassLoader.getSystemClassLoader();
-//		System.out.println("Resources in classloader: " + 
-//				ClassLoader.getSystemResource(System.getProperty("user.dir") + "\rmi.policy"));
-		System.out.println("The url for rmi policy is: " + 
-				(RMI_BioAPI_AsteriskJava_Server.class.getClass()
-						.getClassLoader()
-							.getResource("\\rmi.policy")
-								.getPath())
-				);
-		
-		if(	System.getSecurityManager()==null)
-			System.setSecurityManager(new SecurityManager());
-		
-		try 
-		{	
-			Registry reg = LocateRegistry.createRegistry(Integer.parseInt(args[0]));
-			reg.bind("RMI_BioAPI_AsteriskJava", svr);
-		}
-		catch (Exception e){
+		System.out.println("RmiRegistry listens at port " + args[0]);
+		System.out.println("AsteriskJava RMI Server is ready to listen on " + args[1]);
+		System.out.println("Ip address: " + InetAddress.getLocalHost());
+
+		// Create registry and bind remote object 'svr'
+		try {
+			Registry registry = LocateRegistry.createRegistry(Integer.parseInt(args[0]));
+			registry.bind("RMI_BioAPI_AsteriskJava", svr);
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 			System.exit(0);
 		}
-		//Naming.bind("RMI_BioAPI_AsteriskJava", svr);
-        
-		System.out.println("BioAPI AsteriskJava RMI server starts ... ");
+
+		System.out.println("BioAPI AsteriskJava RMI server started and is listening for requests ... ");
 	}
 
 }
