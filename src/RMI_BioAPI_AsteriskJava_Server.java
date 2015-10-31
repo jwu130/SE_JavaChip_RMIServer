@@ -89,27 +89,41 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
+		// Detect operating system
+		
 		// TODO Auto-generated method stub
 		if (args.length != 2) {
 			System.out.println(
-					"Syntax - java RMI_BioAPI_AsteriskJava_Server_Package/RMI_BioAPI_AsteriskJava_Server_Impl host_port");
+					"Syntax - Two arguments expected rmi_registry_port, host_port");
 			System.exit(1);
 		}
 
-		// Create an instance of our service server ...
-
+		// Create an instance of the server
 		RMI_BioAPI_AsteriskJava_Server svr = new RMI_BioAPI_AsteriskJava_Server(Integer.parseInt(args[1]));
-		// rmiregistry port should be 1099
+		
 		System.out.println("RmiRegistry listens at port " + args[0]);
 		System.out.println("AsteriskJava BSP Server is ready to listen on " + args[1]);
 		System.out.println(InetAddress.getLocalHost());
-		// Binding this server to the ip and host
 		
-		System.setProperty("java.security.policy", "C:\\Users\\TeresaUser\\JavaEEWorkspace\\RMIServer3\\rmi.policy");
-		File parentDir = new File ("..");
-		System.out.println ("Parent  dir : " + parentDir.getCanonicalPath() + "\\rmi.policy");
+		// Set the policy file for the server 
+		System.setProperty("java.security.policy", (
+				RMI_BioAPI_AsteriskJava_Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() + "//rmi.policy"));
+		
+//		File parentDir = new File ("..");
+//		System.out.println ("Parent  dir : " + parentDir.getCanonicalPath() + "\\rmi.policy");
 		//file.getParentFile().getName();
 		//System.out.println("Set the security policy: " + "..\\" + System.getProperty("user.dir") + "\\rmi.policy");
+
+//		ClassLoader.getSystemClassLoader();
+//		System.out.println("Resources in classloader: " + 
+//				ClassLoader.getSystemResource(System.getProperty("user.dir") + "\rmi.policy"));
+		System.out.println("The url for rmi policy is: " + 
+				(RMI_BioAPI_AsteriskJava_Server.class.getClass()
+						.getClassLoader()
+							.getResource("\\rmi.policy")
+								.getPath())
+				);
+		
 		if(	System.getSecurityManager()==null)
 			System.setSecurityManager(new SecurityManager());
 		
