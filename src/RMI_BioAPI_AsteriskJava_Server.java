@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -20,8 +19,51 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 	}
 
 	@Override
+	public void retrieve_available_files(String socket_ip, int socket_port) throws Exception {
+		Socket soc;
+		PrintWriter pw = null;
+		File directory = new File("rmifiles");
+		
+		// Look for subfolder called 'rmifiles'
+		if (!directory.isDirectory())
+			throw new Exception("The directory rmifiles does not exist");
+		File[] fList = directory.listFiles();
+
+		try {
+			// Create socket to connect to client
+			soc = new Socket(socket_ip, socket_port);
+			pw = new PrintWriter(soc.getOutputStream(), true);
+			String s;
+			pw.println("Xfer Start");
+			System.out.println("Xfer Start");
+			
+			// Search through folder for file specified
+			for (File file : fList) {
+				if (file.isDirectory())
+					s = "Directory";
+				else
+					s = "File";
+				pw.println(s + file.getName());
+				System.out.println(s + file.getName());
+			}
+			
+			// Done is the signaling message to terminate socket listener
+			pw.println("Done");
+			soc.close();
+		} catch (UnknownHostException e) {
+			System.err.println("Don't know about host.");
+			e.printStackTrace();
+			System.exit(1);
+		} catch (IOException e) {
+			System.err.println("Couldn't get I/O for the connection to server.");
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	@Override
 	public void RPC_FileRead(String Service_UID, String srcFileName, String socket_ip, int socket_port,
-		String remote_fileName) throws RemoteException {
+			String remote_fileName) throws RemoteException {
 		Socket soc;
 		PrintWriter pw = null;
 
@@ -30,26 +72,26 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 
 		// Search through subdirectory to find file specified
 		try {
-			
+
 			// Look for subfolder called 'rmifiles'
 			if (!directory.isDirectory())
 				throw new Exception("The directory rmifiles does not exist");
 			File[] fList = directory.listFiles();
-			
+
 			// Search through folder for file specified
-			for (File file : fList){
+			for (File file : fList) {
 				System.out.println(file.getName() + " " + srcFileName);
 				if (file.getName().equals(srcFileName))
 					serverFile = file;
 			}
-			
-			if(serverFile==null)
+
+			if (serverFile == null)
 				throw new Exception("The file " + srcFileName + " is not available in rmifiles folder");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			return;
 		}
-		
+
 		BufferedReader brf = null;
 
 		try {
@@ -63,40 +105,33 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 				throw new RuntimeException("Cannot read from closed file " + serverFile.getAbsolutePath() + ".");
 
 			try {
-				
+
 				// Create socket to connect to client
 				soc = new Socket(socket_ip, socket_port);
 				pw = new PrintWriter(soc.getOutputStream(), true);
 
-				 // Signaling message to start xfer to the remote socket server
-				pw.println("StartXfer");
-				
-				// Signaling message about remote file name
-				pw.println("Remote file name is: " + remote_fileName); 
-
 				String line = brf.readLine();
-				int counter = 0;
 
-				while (line != null && counter < 25) {
+				pw.println("Xfer Start");
+				while (line != null) {
 					System.out.println(line);
 					pw.println(line);
-					counter++;
 					line = brf.readLine();
 				}
 
 				// Done is the signaling message to terminate socket listener
-				pw.println("Done"); 
+				pw.println("Done");
 
 				brf.close();
 				soc.close();
 			} catch (UnknownHostException e) {
 				System.err.println("Don't know about host.");
-				System.exit(1);
 				e.printStackTrace();
+				System.exit(1);
 			} catch (IOException e) {
 				System.err.println("Couldn't get I/O for the connection to server.");
-				System.exit(1);
 				e.printStackTrace();
+				System.exit(1);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -107,7 +142,7 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		
+
 		if (args.length != 2) {
 			System.out.println("Syntax - Two arguments expected rmi_registry_port, host_port");
 			System.exit(1);
