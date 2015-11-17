@@ -1,7 +1,0 @@
-grant codeBase "file:/C:/Users/TeresaUser/JavaEEWorkspace/RMIServer3/bin/" {
-  permission java.security.AllPermission;
-};
-
-grant {
-  permission java.security.AllPermission;
-};

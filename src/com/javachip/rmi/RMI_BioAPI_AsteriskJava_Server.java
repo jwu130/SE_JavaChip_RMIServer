@@ -1,3 +1,5 @@
+package com.javachip.rmi;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +14,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implements RMI_BioAPI_AsteriskJava_Interface {
+public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implements RMI_Interface {
 
 	public RMI_BioAPI_AsteriskJava_Server(int port) throws RemoteException {
 		super(port);
@@ -144,7 +146,7 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 	public static void main(String[] args) throws Exception {
 
 		if (args.length != 2) {
-			System.out.println("Syntax - Two arguments expected rmi_registry_port, host_port");
+			System.out.println("Syntax - Two arguments expected rmi_registry_port, host_port Blah");
 			System.exit(1);
 		}
 
