@@ -25,7 +25,7 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 		Socket soc;
 		PrintWriter pw = null;
 		File directory = new File("rmifiles");
-		
+
 		// Look for subfolder called 'rmifiles'
 		if (!directory.isDirectory())
 			throw new Exception("The directory rmifiles does not exist");
@@ -38,17 +38,14 @@ public class RMI_BioAPI_AsteriskJava_Server extends UnicastRemoteObject implemen
 			String s;
 			pw.println("Xfer Start");
 			System.out.println("Xfer Start");
-			
+
 			// Search through folder for file specified
 			for (File file : fList) {
-				if (file.isDirectory())
-					s = "Directory";
-				else
-					s = "File";
-				pw.println(s + file.getName());
-				System.out.println(s + file.getName());
+				if (!file.isDirectory())
+					pw.println(file.getName());
+				System.out.println( file.getName());
 			}
-			
+
 			// Done is the signaling message to terminate socket listener
 			pw.println("Done");
 			soc.close();
